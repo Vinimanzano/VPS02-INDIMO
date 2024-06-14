@@ -1,27 +1,40 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, Button, StyleSheet } from 'react-native';
+import { View, Text, TextInput, Button, Image, FlatList, StyleSheet } from 'react-native';
 
 export default function BuscaScreen() {
   const [query, setQuery] = useState('');
-  const [movieInfo, setMovieInfo] = useState(null);
+  const [movies, setMovies] = useState([]);
   const [error, setError] = useState(null);
 
   const fetchMovieInfo = async () => {
     try {
-      const response = await fetch(`http://www.omdbapi.com/?i=tt3896198&apikey=f8dc2553&t=${query}`);
+      const response = await fetch(`http://www.omdbapi.com/?apikey=f8dc2553&s=${query}`);
       const data = await response.json();
       if (data.Response === "False") {
         setError(data.Error);
+        setMovies([]);
       } else {
-        setMovieInfo(data);
+        setMovies(data.Search || []);
         setError(null);
       }
     } catch (error) {
       console.error("Error fetching movie info:", error);
       setError("Erro ao buscar informações do filme. Por favor, tente novamente.");
-      setMovieInfo(null);
+      setMovies([]);
     }
   };
+
+  const renderMovieItem = ({ item }) => (
+    <View style={styles.movieItem}>
+      <Image 
+        style={styles.poster}
+        source={{uri: item.Poster}}
+        resizeMode="cover"
+      />
+      <Text style={styles.movieTitle}>{item.Title}</Text>
+      <Text style={styles.movieGenre}>Gênero: {item.Type}</Text>
+    </View>
+  );
 
   return (
     <View style={styles.container}>
@@ -38,16 +51,12 @@ export default function BuscaScreen() {
         color="#8B4513"
       />
       {error && <Text style={styles.error}>{error}</Text>}
-      {movieInfo && (
-        <View style={styles.movieInfo}>
-          <Text style={styles.infoTitle}>{movieInfo.Title}</Text>
-          <Text>Ano: {movieInfo.Year}</Text>
-          <Text>Gênero: {movieInfo.Genre}</Text>
-          <Text>Diretor: {movieInfo.Director}</Text>
-          <Text>Atores: {movieInfo.Actors}</Text>
-          <Text>Sinopse: {movieInfo.Plot}</Text>
-        </View>
-      )}
+      <FlatList
+        style={styles.movieList}
+        data={movies}
+        renderItem={renderMovieItem}
+        keyExtractor={item => item.imdbID}
+      />
     </View>
   );
 }
@@ -79,13 +88,25 @@ const styles = StyleSheet.create({
     color: 'red',
     marginTop: 10,
   },
-  movieInfo: {
-    marginTop: 20,
+  movieList: {
+    width: '100%',
   },
-  infoTitle: {
-    fontSize: 20,
+  movieItem: {
+    padding: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#8B4513',
+  },
+  movieTitle: {
+    fontSize: 18,
     fontWeight: 'bold',
-    marginBottom: 10,
     color: '#8B4513',
+  },
+  movieGenre: {
+    color: '#8B4513',
+  },
+  poster: {
+    width: 100,
+    height: 150,
+    marginBottom: 10,
   },
 });
