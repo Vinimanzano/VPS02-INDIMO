@@ -105,8 +105,8 @@ const styles = StyleSheet.create({
     color: '#8B4513',
   },
   poster: {
-    width: 100,
-    height: 150,
+    width: 220,
+    height: 320,
     marginBottom: 10,
   },
 });
